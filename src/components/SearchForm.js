@@ -27,7 +27,6 @@ const SearchForm = () => {
           </input>
         </div>
       </form>
-
     </section>
   )
 }
