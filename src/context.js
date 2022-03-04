@@ -2,21 +2,64 @@ import React, { useState, useContext, useEffect } from 'react'
 import { useCallback } from 'react'
 
 const url = 'https://www.thecocktaildb.com/api/json/v1/1/search.php?s='
+const urlById = 'https://www.thecocktaildb.com/api/json/v1/1/lookup.php?i='
 const AppContext = React.createContext()
 
 const AppProvider = ({ children }) => {
 
-  const [ currentSerch, setCurrentSeacrh ] = useState("")
-  const [ dataCocktails, setDataCocktails ] = useState("")
+  const [ currentSearch, setCurrentSearch ] = useState("")
+  const [ loading, setLoading ] = useState(true)
+  const [ dataCocktails, setDataCocktails ] = useState([])
 
-  useEffect(() => {
-    fetch(`${url}${currentSerch}`)
-    .then(res => res.json())
-    .then(data => setDataCocktails(data))
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      
+      const response = await fetch(`${url}${currentSearch}`)
+      const data = await response.json()
+      const { drinks } = data
+      
+      if (drinks) {
+        
+        const newCocktails = drinks.map(drink => {
+          //console.log(drink)
+          const { idDrink, strCategory, strDrink, strDrinkThumb, strAlcoholic } = drink
+          return {
+            id: idDrink,
+            name: strDrink,
+            category: strCategory,
+            imgUrl: strDrinkThumb,
+            info: strAlcoholic
+          }
+        })
+
+        setDataCocktails(newCocktails)
+      
+      } else {
+        setDataCocktails([])
+      }
+
+    } catch (error) {
+      console.log(error)
+    }
+
+    setLoading(false)
+  }
   
-  }, [currentSerch])
+  useEffect(() => {
+    fetchData()
+  }, [currentSearch])
 
-  return <AppContext.Provider value='hello'>{children}</AppContext.Provider>
+  return (
+    <AppContext.Provider value={{
+        currentSearch,
+        loading,
+        dataCocktails,
+        setCurrentSearch
+    }}>
+      {children}
+    </AppContext.Provider>
+  )
 }
 // make sure use
 export const useGlobalContext = () => {
